@@ -1,0 +1,14 @@
+server:
+  port: 8001
+
+
+#qq邮箱配置
+spring:
+  mail:
+    default-encoding: UTF-8
+    host: smtp.qq.com
+    password: gvypvmmgjnwhbceg
+    username: 891554093@qq.com
+mail:
+  username: 891554093@qq.com
+

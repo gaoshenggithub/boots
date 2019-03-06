@@ -107,4 +107,109 @@ http.tracker_server_port=8080 # tracker 服务器的 http端口号，必须和tr
 
 #测试图片
 /usr/bin/fdfs_upload_file  /etc/fdfs/client.conf 图片路径
-=================其他操作开始=========
+事列:group1/M00/00/00/XXXXX.
+图片最终的路径在fastdfs_storage_data的data目录下有自己上传的图片
+
+安装nginx
+yum -y install pcre pcre-devel  
+yum -y install zlib zlib-devel  
+yum -y install openssl openssl-devel
+
+解压
+tar -zxvf nginx-1.12.0.tar.gz
+unzip fastdfs-nginx-module-master.zip
+此命令需要在nginx目录下执行                            #解压后fastdfs-nginx-module所在的位置
+./configure --prefix=/usr/local/nginx --add-module=/fastdfs-nginx-module-master的路径/src    
+
+make
+make install
+/usr/local/nginx就是nginx安装路径(自定义)   
+cd /usr/local/nginx/conf/nginx.conf
+
+server {
+        listen       端口号;
+        server_name  localhost;无需修改
+
+        location / {
+            root   html;
+            index  index.html index.htm;
+        }
+
+        location /group1/M00 {//新增
+            root /usr/muyou/dev/fastdfs/fastdfs_storage_data/data;
+            ngx_fastdfs_module;
+        }
+        
+然后进入FastDFS安装时的解压过的目录，将http.conf和mime.types拷贝到/etc/fdfs目录下：
+cp http.conf /etc/fdfs/
+cp mime.types /etc/fdfs/
+另外还需要把fastdfs-nginx-module安装目录中src目录下的mod_fastdfs.conf也拷贝到/etc/fdfs目录下：
+
+cp /路径/fastdfs-nginx-module-master/src/mod_fastdfs.conf /etc/fdfs/
+ base_path=/usr/muyou/dev/fastdfs/fastdfs_storage  #保存日志目录
+ tracker_server=192.168.150.132:22122 #tracker服务器的IP地址以及端口号
+ storage_server_port=23000 #storage服务器的端口号
+ url_have_group_name = true #文件 url 中是否有 group 名
+ store_path0=/usr/muyou/dev/fastdfs/fastdfs_storage_data   #存储路径
+ group_count = 3 #设置组的个数，事实上这次只使用了group1
+ 
+ 在文件的最后，设置group
+ 
+ [group1]
+ group_name=group1
+ storage_server_port=23000
+ store_path_count=1
+ store_path0=/usr/muyou/dev/fastdfs/fastdfs_storage_data
+ store_path1=/usr/muyou/dev/fastdfs/fastdfs_storage_data
+ 
+ # group settings for group #2
+ # since v1.14
+ # when support multi-group, uncomment following section as neccessary
+ [group2]
+ group_name=group2
+ storage_server_port=23000
+ store_path_count=1
+ store_path0=/usr/muyou/dev/fastdfs/fastdfs_storage_data
+ 
+ [group3]
+ group_name=group3
+ storage_server_port=23000
+ store_path_count=1
+ store_path0=/usr/muyou/dev/fastdfs/fastdfs_storage_data
+ 
+ 
+ 创建M00至storage存储目录的符号连接：
+ 
+ 
+ ln  -s  /usr/muyou/dev/fastdfs/fastdfs_storage_data/data/ /usr/muyou/dev/fastdfs/fastdfs_storage_data/data/M00
+ 启动nginx:
+ /usr/local/nginx/sbin/nginx
+
+
+#配置tracker_nginx
+第二个nginx安装修改名称
+./configure --prefix=/usr/local/nginx2 --add-module=/路径/fastdfs-nginx-module-master/src    #解压后fastdfs-nginx-module所在的位置
+
+make
+make install
+
+修改第二次安装nginx的配置文件
+upstream fdfs_group1 {
+        server 127.0.0.1:9999;
+    }
+    server {
+        listen       9989;
+        server_name  localhost;
+
+        #charset koi8-r;
+
+        #access_log  logs/host.access.log  main;
+
+        location /group1/M00 {
+            proxy_pass http://fdfs_group1;
+        }
+启动nginx  sbin目录当前nginx目录下
+开放端口即可
+
+
+

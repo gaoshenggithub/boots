@@ -3,10 +3,12 @@ package com.fast.fastdfs;
 import com.fast.fastdfs.core.PublicArgs;
 import org.springframework.boot.web.servlet.MultipartConfigFactory;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.MultipartConfigElement;
-@Component
+
+@Configuration
 public class MultipartConfig {
     /**
      * 文件上传配置
